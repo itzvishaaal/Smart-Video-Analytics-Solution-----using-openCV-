@@ -12,72 +12,81 @@ def connect_databse():
     '''This will create the connection to database''' 
 
     try:
-        connection = mariadb.connect(user = "root" , host = " localhost", password= "")
-        cursor = connection.cursor()
+        conn = mariadb.connect(user = "root" , password= "", database = DB_DATABASE)
+        cur = conn.cursor()
         
     except Exception as err:
 
-        cursor = connection = None
+        cur = conn = None
         print("error while connecting the database : {0}".format(err))
+        print("oops connect db failed") 
+
+    return cur, conn    
 
 
 def create_database():
-    connection = None
-    cursor = None
+    
+    conn = None
+    cur = None
 
     try:
         status = True
-        connection = mariadb.connect(user = "root" , host = " localhost", password= "") 
-        cursor = connection.cursor()
+        conn = mariadb.connect(user = "root" , host = " localhost", password= "") 
+        cur = conn.cursor()
 
         ''' Create database Challan '''
 
         sql_command = "CREATE DATABASE IF NOT EXISTS {0}".format(DB_DATABASE)
 
-        cursor.execute(sql_command)
+        cur.execute(sql_command)
 
     except Exception as err:    
         print("ERROR {0}".format(err))
         status = False
+        print("oops create_db  failed")
+
     finally:
-        if connection is not None:
-            cursor.close()
-            connection.close()
-        return status
+        if conn is not None:
+            cur.close()
+            conn.close()
+    return status
 
 
 def init_db():
 
     ''' This function will initilize the database i.e will create the tables '''
 
-    connection = None
+    conn = None
+    
     try:
         # Create the database
         database_status = create_database()
 
         if database_status:
-            cursor, connection = connect_databse()
+            cur, conn = connect_databse()
 
-            cursor.execute(''' CREATE TABLE IF NOT EXISTS Challans(
-                               Ticket_Number INTEGER PRIMARY KEY AUTO_INCREMENT, 
-                               Date TEXT NOT_NULL,
-                               Time TEXT NOT_NULL,
-                               Vehicle_Number TEXT NOT_NULL)
+            cur.execute('''CREATE TABLE IF NOT EXISTS Challans (
+                           TicketNumber INTEGER PRIMARY KEY AUTO_INCREMENT,
+                           Time TEXT NOT NULL,
+                           Date TEXT NOT NULL,
+                           VehicleNumber TEXT NOT NULL)
+                        ''')
 
-                           ''')
 
-            connection.commit()
+            conn.commit()
+            
     except Exception as err:
-        print("DB error {0}".format(err))   
 
+        print("DB error {0}".format(err))         
+        print("oops init_db failed")
 
     finally:
-        if connection is not None:
-            cursor.close()
-            connection.close()
-    return                 
+        if conn is not None:
+            cur.close()
+            conn.close()
+    return               
 
-def addChallan(Date, Time, Vehicle_Number):
+def addChallan(date, time, VehicleNumber):
 
 
     ''' This function will add challan's information '''
@@ -86,24 +95,26 @@ def addChallan(Date, Time, Vehicle_Number):
     status = message = " Success"
 
     try:
-        sql_query = "INSERT INTO Challans (Date, Time, Vehicle_Number) VALUES ('{0}', '{1}', '{2}',)".format(Date, 
-        Time, Vehicle_Number)
+        sql_query = "INSERT INTO Challans (Date, Time, VehicleNumber) VALUES ('{0}', '{1}', '{2}')".format(date, 
+        time, VehicleNumber)
 
-        cursor, connection = connect_databse()
+        cur, conn = connect_databse()
 
-        cursor.execute(sql_query)
-        connection.commit()
+        cur.execute(sql_query)
+        conn.commit()
     except Exception as err:
-        print("database error {0}".format(err))    
+        print("database error {0}".format(err))
+        print("oops addchallan failed")
+            
     finally:
 
-        if cursor is not None:
-            cursor.close()
-            connection.close()
+        if conn is not None:
+            cur.close()
+            conn.close()
     return status, message
 
 
-def updateChallans(Ticket_Number, Date, Time, Vehicle_Number):
+def updateChallans(date, time, VehicleNumber, TicketNumber):
 
     ''' This function will update the subnet information '''
 
@@ -111,55 +122,18 @@ def updateChallans(Ticket_Number, Date, Time, Vehicle_Number):
 
     try:
 
-        sql_query = " UPDATE Challans SET Date = '{0}', Time = '{1}', Vehicle_number = '{2} WHERE Ticket_Number =  '{3}'".format(Date,Time, Vehicle_Number, Ticket_Number)
-        cursor, connection = connect_databse()
-        cursor.execute(sql_query)
-        connection.commit()
+        sql_query = " UPDATE Challans SET Date = '{0}', Time = '{1}', VehicleNumber = '{2}' WHERE TicketNumber =  '{3}'".format(date,time, VehicleNumber,TicketNumber)
+        cur, conn = connect_databse()
+        cur.execute(sql_query)
+        conn.commit()
     except Exception as err:
         print("database error {0}".format(err))
         status = "Fail"
         message = "Database update error {0}".format(err)
+        print("oops updateChallan failed")
     finally:
-        if connection is not None:
-            cursor.close()
-            connection.close()
+        if conn is not None:
+            cur.close()
+            conn.close()
 
     return status,  message  
-
-
-'''
-t = time.localtime()
-current_time = time.strftime("%H:%M:%S", t)
-print(current_time)
-
-
-tz_ND = pytz.timezone('India/Kolkata')
-
-newDelhi = datetime.now(tz_ND)
-print("New Delhi Time: ", datetime_Kolkata.strftime("%H:%M:%S"))
-
-'''
-
-#datetime_object = datetime.datetime.now()  # To print current date and time
-
-
-
-
-
-# To capture current date
-
-date = date.today()
-
-# dd-Month-YY 
-d1 = date.strftime("%d-%B-%Y")
-print("Today's date:", d1)
-
-
-# current time 
-
-now = datetime.now()
-
-time = now.strftime("%I:%M:%p")
-
-print("Current time is:", time)
-
