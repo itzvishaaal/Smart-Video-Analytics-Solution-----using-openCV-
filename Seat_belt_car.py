@@ -12,7 +12,8 @@ import numpy as np
 import imutils
 import database_test
 import numberPlateCap
-from numberPlateCap import detectNumberPlate
+from datetime import datetime
+from datetime import date
 
 
 
@@ -108,8 +109,31 @@ if belt == False:
 
     print("No Seatbelt detected")
 
-    detectNumberPlate()
     
+    # To capture current date
+    d1 = date.today()
+    # dd-Month-YY 
+    date = d1.strftime("%d-%B-%Y")
+    print("Today's date:", date)
+    
+
+    # current time 
+    now = datetime.now()
+    time = now.strftime("%I:%M:%p")
+    print("Current time is:", time)
+
+
+    numberPlate,numberPlateStatus = numberPlateCap.detectNumberPlate()
+    print("Vehicle Number Detected :",numberPlate)
+    print(numberPlateStatus)
+    
+    database_test.connect_databse()
+    database_test.create_database()
+    database_test.init_db()
+    #print(initilize_db)
+    database_test.addChallan(date, time, numberPlate)
+    database_test.updateChallans(date, time, numberPlate, "")
+
     
 
 else:
